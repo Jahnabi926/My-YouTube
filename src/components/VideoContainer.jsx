@@ -1,30 +1,29 @@
-import { useEffect, useState } from "react";
 import VideoCard, { AdVideoCard } from "./VideoCard";
-import { YOUTUBE_VIDEOS_API } from "../utils/constants";
 import { Link } from "react-router";
+import useYouTubeVideos from "../hooks/useYouTubeVideos";
 
 const VideoContainer = () => {
-  const [videos, setVideos] = useState([]);
-
-  useEffect(() => {
-    const getVideos = async () => {
-      const data = await fetch(YOUTUBE_VIDEOS_API);
-      const json = await data.json();
-      // window.myVideos = json.items;
-      setVideos(json.items);
-    };
-
-    getVideos();
-  }, []);
+  const { videos, loading } = useYouTubeVideos();
 
   return (
     <div className="flex flex-wrap">
-      {videos && <AdVideoCard info={videos[0]} />}
-      {videos?.map((video) => (
-        <Link to={"/watch?v=" + video.id} key={video.id}>
+      {/* Show the ad card safely only if videos actually exist */}
+      {videos.length > 0 && <AdVideoCard info={videos[0]} />}
+
+      {/* Map through all combined videos */}
+      {videos?.map((video, index) => (
+        // Adding the index to the key prevents duplicate item key errors from YouTube
+        <Link to={"/watch?v=" + video.id} key={`${video.id}-${index}`}>
           <VideoCard info={video} />
         </Link>
       ))}
+
+      {/* Loading message banner at the bottom */}
+      {loading && (
+        <div className="w-full text-center p-4 font-bold text-gray-500">
+          Loading videos...
+        </div>
+      )}
     </div>
   );
 };
